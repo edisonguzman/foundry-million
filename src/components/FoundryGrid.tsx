@@ -1,18 +1,18 @@
 "use client"
 import dynamic from 'next/dynamic';
 
-// We cast the module to 'any' so TypeScript stops looking for a specific type definition during build
+// 1. Cast the dynamic imports as 'any' to bypass strict prop-checking during build
 const Grid = dynamic(
   () => import('react-window').then((mod: any) => mod.FixedSizeGrid), 
   { ssr: false }
-);
+) as any;
 
 const AutoSizer = dynamic(
   () => import('react-virtualized-auto-sizer').then((mod: any) => {
     return mod.default || mod.AutoSizer;
   }),
   { ssr: false }
-);
+) as any;
 
 const Cell = ({ columnIndex, rowIndex, style }: any) => (
   <div 
