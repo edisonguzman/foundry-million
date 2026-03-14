@@ -1,12 +1,35 @@
 {
+  "name": "foundry-million",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "drizzle-orm": "^0.45.1",
+    "next": "latest",
+    "openai": "^6.29.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-virtualized-auto-sizer": "^2.0.3",
+    "react-window": "^2.2.7",
     "resend": "^6.9.3",
     "stripe": "^20.4.1"
   },
   "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@types/react-window": "^1.8.8",
+    "autoprefixer": "latest",
     "dotenv": "^17.3.1",
-    "drizzle-kit": "^0.31.9"
+    "drizzle-kit": "^0.31.9",
+    "postcss": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
   }
 }
