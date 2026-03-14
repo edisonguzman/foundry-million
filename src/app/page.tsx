@@ -18,7 +18,8 @@ export default async function Home() {
             FOUNDRY MILLION
           </h1>
           <p className="text-gray-400 text-lg font-light tracking-wide max-w-md mx-auto">
-            Transforming 1,000,000 problems into AI-forged enterprises.
+            AI may eliminate jobs — but it could also create one million new companies. Describe a problem you see in the world.
+AI will generate a business idea to solve it. Help us invent one million businesses for the future.
           </p>
         </div>
 
@@ -27,7 +28,7 @@ export default async function Home() {
           <form action={submitProblem} className="bg-black/80 p-6 rounded-[calc(1rem-1px)] space-y-4">
             <textarea 
               name="problem"
-              placeholder="What friction exists in the world today?"
+              placeholder="What problem exists in the world today?"
               className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none h-32 transition-all resize-none"
               required
             />
