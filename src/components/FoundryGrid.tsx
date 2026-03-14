@@ -1,14 +1,14 @@
 "use client"
 import dynamic from 'next/dynamic';
 
-// Force the dynamic import to grab the specific component export
-const Grid = dynamic(() => import('react-window').then(mod => mod.FixedSizeGrid), { 
-  ssr: false 
-});
+// We cast the module to 'any' so TypeScript stops looking for a specific type definition during build
+const Grid = dynamic(
+  () => import('react-window').then((mod: any) => mod.FixedSizeGrid), 
+  { ssr: false }
+);
 
 const AutoSizer = dynamic(
   () => import('react-virtualized-auto-sizer').then((mod: any) => {
-    // Some versions export as .default, some as .AutoSizer
     return mod.default || mod.AutoSizer;
   }),
   { ssr: false }
