@@ -1,41 +1,46 @@
-// src/app/api/webhooks/stripe/route.ts
+"use server"
+
+import { NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import { db } from '@/db';
 import { ideas } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { Resend } from 'resend';
-import { generateMarketingPlan } from '@/lib/foundry-logic';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-01-27' as any,
+});
 
 export async function POST(req: Request) {
-  const payload = await req.text();
-  // ... (Standard Stripe signature verification logic here) ...
+  const body = await req.text();
+  const signature = req.headers.get('stripe-signature') as string;
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const ideaId = session.metadata.ideaId;
+  // We use Stripe.Event to override the default global Event
+  let event: Stripe.Event; 
 
-    // 1. Fetch Idea from Neon
-    const [idea] = await db.select().from(ideas).where(eq(ideas.id, ideaId));
-
-    // 2. Generate the Full Tier 3 Plan
-    const fullPlan = await generateMarketingPlan({ name: idea.businessName, concept: idea.concept });
-
-    // 3. Update Neon with the Plan
-    await db.update(ideas).set({ 
-      marketingPlan: fullPlan,
-      tier: 3,
-      status: 'completed'
-    }).where(eq(ideas.id, ideaId));
-
-    // 4. Email User via Resend
-    await resend.emails.send({
-      from: 'Edison @ Foundry Million <hello@foundrymillion.com>',
-      to: [idea.ownerEmail],
-      subject: `Your Foundry Million Marketing Plan: ${idea.businessName}`,
-      html: `<h1>Congrats on Tile #${idea.tileIndex}!</h1><p>${fullPlan.social}</p>`
-    });
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (err: any) {
+    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  return new Response('Success', { status: 200 });
+  // Handle the event
+  if (event.type === 'checkout.session.completed') {
+    // We cast this as any or Stripe.Checkout.Session to stop the data error
+    const session = event.data.object as any; 
+    const ideaId = session.metadata?.ideaId;
+
+    if (ideaId) {
+       await db.update(ideas)
+        .set({ status: 'paid' })
+        .where(eq(ideas.id, Number(ideaId)));
+       
+       console.log(`Payment confirmed for Idea #${ideaId}`);
+    }
+  }
+
+  return NextResponse.json({ received: true });
 }
