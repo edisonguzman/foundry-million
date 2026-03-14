@@ -2,7 +2,7 @@ import { pgTable, serial, text, varchar, timestamp, integer, jsonb } from 'drizz
 
 export const ideas = pgTable('ideas', {
   id: serial('id').primaryKey(),
-  tileIndex: integer('tile_index').unique().notNull(), // The position on the Foundry Million grid
+  tileIndex: integer('tile_index').unique().notNull(),
   problem: text('problem').notNull(),
   businessName: varchar('business_name', { length: 255 }).notNull(),
   tagline: text('tagline'),
@@ -11,9 +11,12 @@ export const ideas = pgTable('ideas', {
   
   // Tiers: 1 ($10), 2 ($20), 3 ($50)
   tier: integer('tier').default(1),
+  
+  // ADD THIS LINE BELOW
+  status: varchar('status', { length: 50 }).default('pending'), 
+  
   businessPlan: jsonb('business_plan'),
   marketingPlan: jsonb('marketing_plan'),
-  
   ownerEmail: varchar('owner_email', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow(),
 });
