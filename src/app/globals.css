@@ -1,8 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Add this to ensure the background stays dark while we fix the design */
+/* Your custom variables and styles below */
 :root {
   --background: #000000;
   --foreground: #ffffff;
