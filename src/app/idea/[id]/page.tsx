@@ -103,6 +103,34 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
           </div>
         </header>
 
+        {/* Broadcast Bar - Only visible if the user has access/paid */}
+{showFullPlan && (
+  <div className="mb-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="flex items-center gap-3">
+      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+      <p className="text-xs font-mono uppercase tracking-widest text-blue-400">Blueprint Broadcast Ready</p>
+    </div>
+    <div className="flex gap-2">
+      {/* Twitter/X Share */}
+      <a 
+        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just forged a new $1M business blueprint: ${idea.businessName}. Check out Tile #${idea.tileIndex} on @FoundryMillion!`)}&url=${encodeURIComponent(`https://www.foundrymillion.com/idea/${idea.id}`)}`}
+        target="_blank"
+        className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
+      >
+        Share on X
+      </a>
+      {/* LinkedIn Share */}
+      <a 
+        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.foundrymillion.com/idea/${idea.id}`)}`}
+        target="_blank"
+        className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
+      >
+        LinkedIn
+      </a>
+    </div>
+  </div>
+)}
+
         {/* LOGIC GATE: Show Content vs Unlock Form vs Buy Button */}
         {showFullPlan ? (
           /* STATE 1: PAID AND VERIFIED */
