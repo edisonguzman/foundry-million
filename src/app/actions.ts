@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Stripe from "stripe";
 import { headers } from "next/headers";
+import { cookies } from "next/headers";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -105,6 +106,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     redirect(session.url);
   } else {
     throw new Error("Failed to create Stripe session");
+  }
+}
+export async function verifyAccess(formData: FormData) {
+  const id = formData.get("id") as string;
+  const emailInput = formData.get("email") as string;
+
+  const [idea] = await db.select().from(ideas).where(eq(ideas.id, Number(id)));
+
+  if (idea && idea.ownerEmail === emailInput.toLowerCase().trim()) {
+    // Set a secure cookie that expires in 30 days
+    const cookieStore = await cookies();
+    cookieStore.set(`access_${id}`, "granted", { 
+      maxAge: 60 * 60 * 24 * 30,
+      httpOnly: true,
+      secure: true 
+    });
+    revalidatePath(`/idea/${id}`);
+  } else {
+    // You could handle errors here, but for now we'll just refresh
+    return { error: "Access denied." };
   }
 }
 export async function upvoteIdea(formData: FormData) {

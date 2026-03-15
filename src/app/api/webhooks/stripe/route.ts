@@ -36,6 +36,7 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any;
     const ideaId = session.metadata?.ideaId;
+    const customerEmail = session.customer_details?.email;
 
     if (ideaId) {
       try {
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
             await db.update(ideas)
               .set({ 
                 status: 'paid',
+                ownerEmail: customerEmail,
                 businessPlan: parsedPlans.businessPlan,
                 marketingPlan: parsedPlans.marketingPlan
               })
