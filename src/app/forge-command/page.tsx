@@ -53,18 +53,12 @@ export default async function ForgeCommand() {
                   <td className="p-4 text-right">
                     <form action={deleteIdea}>
                       <input type="hidden" name="id" value={idea.id} />
-                      <button 
-                        type="submit" 
-                        className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-white hover:bg-red-600 px-4 py-2 rounded border border-red-500/30 hover:border-red-500 transition-all"
-                        // Added a quick browser confirmation so you don't accidentally click it
-                        onClick={(e) => {
-                          if (!confirm(`Are you sure you want to vaporize Tile #${idea.tileIndex}? This cannot be undone.`)) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        Vaporize
-                      </button>
+<button 
+  type="submit" 
+  className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-white hover:bg-red-600 px-4 py-2 rounded border border-red-500/30 hover:border-red-500 transition-all"
+>
+  Vaporize
+</button>
                     </form>
                   </td>
                 </tr>
