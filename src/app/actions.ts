@@ -114,18 +114,16 @@ export async function verifyAccess(formData: FormData) {
 
   const [idea] = await db.select().from(ideas).where(eq(ideas.id, Number(id)));
 
-  if (idea && idea.ownerEmail === emailInput.toLowerCase().trim()) {
-    // Set a secure cookie that expires in 30 days
+  // Standardize both to lowercase to prevent "Capital Letter" login issues
+  if (idea && idea.ownerEmail?.toLowerCase().trim() === emailInput.toLowerCase().trim()) {
     const cookieStore = await cookies();
     cookieStore.set(`access_${id}`, "granted", { 
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: 60 * 60 * 24 * 30, // 30 days
       httpOnly: true,
       secure: true 
     });
+    
     revalidatePath(`/idea/${id}`);
-  } else {
-    // You could handle errors here, but for now we'll just refresh
-    return { error: "Access denied." };
   }
 }
 export async function upvoteIdea(formData: FormData) {
