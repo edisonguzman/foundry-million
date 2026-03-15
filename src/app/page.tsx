@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { ideas } from "@/db/schema";
 import { desc } from "drizzle-orm";
-import { submitProblem } from "./actions";
+import { submitProblem, upvoteIdea } from "./actions";
 import FoundryGrid from "@/components/FoundryGrid";
 import Link from "next/link"; // Added Link import
 
@@ -52,27 +52,44 @@ AI will generate a business idea to solve it. Help us invent one million busines
 
           <div className="grid gap-6">
             {recentIdeas.map((idea) => (
-              <Link href={`/idea/${idea.id}`} key={idea.id} className="block group">
-                <div className="relative p-8 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 idea-card-glow">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                        {idea.businessName}
-                      </h3>
-                      <p className="text-blue-500/80 text-sm font-medium tracking-tight uppercase">
-                        {idea.tagline}
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-mono text-gray-700 bg-gray-800/50 px-2 py-1 rounded">
-                      TILE #{idea.tileIndex}
-                    </span>
-                  </div>
-                  <p className="text-gray-400 leading-relaxed font-light italic line-clamp-2">
-                    &quot;{idea.concept}&quot;
-                  </p>
-                </div>
-              </Link>
-            ))}
+  <div key={idea.id} className="relative p-6 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 flex gap-6 idea-card-glow">
+    
+    {/* The Upvote Column */}
+    <form action={upvoteIdea} className="flex flex-col items-center justify-start pt-2 min-w-[3rem]">
+      <input type="hidden" name="id" value={idea.id} />
+      <button 
+        type="submit" 
+        className="text-gray-600 hover:text-blue-500 hover:-translate-y-1 transition-all p-2"
+        aria-label="Upvote this idea"
+      >
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+        </svg>
+      </button>
+      <span className="font-mono text-xl font-bold text-white">{idea.upvotes}</span>
+    </form>
+
+    {/* The Content Column (Clickable to Blueprint) */}
+    <Link href={`/idea/${idea.id}`} className="flex-1 block group">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
+            {idea.businessName}
+          </h3>
+          <p className="text-blue-500/80 text-sm font-medium tracking-tight uppercase">
+            {idea.tagline}
+          </p>
+        </div>
+        <span className="text-[10px] font-mono text-gray-700 bg-gray-800/50 px-2 py-1 rounded">
+          TILE #{idea.tileIndex}
+        </span>
+      </div>
+      <p className="text-gray-400 leading-relaxed font-light italic line-clamp-2">
+        &quot;{idea.concept}&quot;
+      </p>
+    </Link>
+  </div>
+))}
           </div>
         </div>
       </main>

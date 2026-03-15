@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { ideas } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import OpenAI from "openai";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -106,4 +106,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   } else {
     throw new Error("Failed to create Stripe session");
   }
+}
+export async function upvoteIdea(formData: FormData) {
+  const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) return;
+
+  // Atomically increment the vote count directly in the database
+  await db.update(ideas)
+    .set({ upvotes: sql`${ideas.upvotes} + 1` })
+    .where(eq(ideas.id, id));
+
+  revalidatePath("/");
 }
