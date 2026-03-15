@@ -2,6 +2,7 @@
 
 import { db } from "@/db";
 import { ideas } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import OpenAI from "openai";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -16,8 +17,7 @@ export async function submitProblem(formData: FormData) {
   const problem = formData.get("problem") as string;
   if (!problem) return;
 
-  // 1. Stage 1: The Micro-Forge (Fast & Cost-Effective)
-  // We use gpt-4o-mini to keep the "free" API burn rate close to zero
+  // 1. The Micro-Forge
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini", 
     response_format: { type: "json_object" },
@@ -40,21 +40,27 @@ export async function submitProblem(formData: FormData) {
 
   const aiData = JSON.parse(aiResponse);
 
-  // 2. Save the Free Stage 1 data to Neon
-  // We use .returning() so we can grab the ID of the newly created idea
+  // 2. Find the highest existing Tile ID
+  const [lastIdea] = await db
+    .select({ tileIndex: ideas.tileIndex })
+    .from(ideas)
+    .orderBy(desc(ideas.tileIndex))
+    .limit(1);
+
+  // If there are no ideas yet, start at 1. Otherwise, add 1 to the highest.
+  const nextTileIndex = lastIdea?.tileIndex ? lastIdea.tileIndex + 1 : 1;
+
+  // 3. Save the Free Stage 1 data to Neon with the sequential ID
   const [newIdea] = await db.insert(ideas).values({
-    tileIndex: Math.floor(Math.random() * 1000000), // We will make this sequential later
+    tileIndex: nextTileIndex,
     problem: problem,
     businessName: aiData.name || "Unknown Startup",
     tagline: aiData.tagline || "Forging in progress...",
     concept: aiData.concept || "Concept generation failed.",
-    status: "pending", // It stays 'pending' until they pay for the blueprint
+    status: "pending", 
   }).returning(); 
 
-  // 3. Refresh the homepage feed so everyone sees the new idea
   revalidatePath("/");
-
-  // 4. Send the user directly to their new public Blueprint page
   redirect(`/idea/${newIdea.id}`);
 }
 export async function createCheckoutSession(formData: FormData) {
