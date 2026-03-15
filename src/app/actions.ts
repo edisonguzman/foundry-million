@@ -5,6 +5,8 @@ import { ideas } from "@/db/schema";
 import OpenAI from "openai";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import Stripe from "stripe";
+import { headers } from "next/headers";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -54,4 +56,48 @@ export async function submitProblem(formData: FormData) {
 
   // 4. Send the user directly to their new public Blueprint page
   redirect(`/idea/${newIdea.id}`);
+}
+export async function createCheckoutSession(formData: FormData) {
+  const ideaId = formData.get("ideaId") as string;
+  if (!ideaId) throw new Error("Idea ID is required");
+
+  // Initialize Stripe
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-01-27" as any,
+  });
+
+  // Get the current domain so Stripe knows where to send them back
+  const headersList = await headers();
+  const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  // Create the checkout session
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: `Unlock Blueprint: Tile #${ideaId}`,
+            description: "Full AI-Generated Business & Marketing Strategy",
+          },
+          unit_amount: 1000, // $10.00 in cents
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    success_url: `${origin}/idea/${ideaId}?success=true`,
+    cancel_url: `${origin}/idea/${ideaId}?canceled=true`,
+    metadata: {
+      ideaId: ideaId, // Crucial: This tells the webhook WHICH idea to mark as 'paid'
+    },
+  });
+
+  // Redirect the user to Stripe's hosted checkout page
+  if (session.url) {
+    redirect(session.url);
+  } else {
+    throw new Error("Failed to create Stripe session");
+  }
 }

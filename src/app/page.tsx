@@ -19,7 +19,7 @@ export default async function Home() {
             FOUNDRY MILLION
           </h1>
           <p className="text-gray-400 text-lg font-light tracking-wide max-w-md mx-auto">
-            AI may eliminate jobs — but it could also create one million new companies.Describe a problem you see in the world.
+            AI may eliminate jobs — but it could also create one million new companies. Describe a problem you see in the world.
 AI will generate a business idea to solve it. Help us invent one million businesses for the future.
           </p>
         </div>
