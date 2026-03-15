@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/db";
 import { ideas } from "@/db/schema";
 import { desc } from "drizzle-orm";
@@ -50,32 +51,25 @@ AI will generate a business idea to solve it. Help us invent one million busines
           </div>
 
           <div className="grid gap-6">
-            {recentIdeas.map((idea) => (
-              <div 
-                key={idea.id} 
-                className="group relative p-8 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                      {idea.businessName}
-                    </h3>
-                    <p className="text-blue-500/80 text-sm font-medium tracking-tight uppercase">
-                      {idea.tagline}
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-mono text-gray-700 bg-gray-800/50 px-2 py-1 rounded">
-                    TILE #{idea.tileIndex}
-                  </span>
-                </div>
-                <p className="text-gray-400 leading-relaxed font-light italic">
-                  &quot;{idea.concept}&quot;
-                </p>
-              </div>
-            ))}
-          </div>
+           {recentIdeas.map((idea) => (
+  <Link href={`/idea/${idea.id}`} key={idea.id} className="block">
+    <div className="group relative p-8 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 idea-card-glow">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
+            {idea.businessName}
+          </h3>
+          <p className="text-blue-500/80 text-sm font-medium tracking-tight uppercase">
+            {idea.tagline}
+          </p>
         </div>
-      </main>
+        <span className="text-[10px] font-mono text-gray-700 bg-gray-800/50 px-2 py-1 rounded">
+          TILE #{idea.tileIndex}
+        </span>
+      </div>
+      <p className="text-gray-400 leading-relaxed font-light italic line-clamp-2">
+        &quot;{idea.concept}&quot;
+      </p>
     </div>
-  );
-}
+  </Link>
+))}
