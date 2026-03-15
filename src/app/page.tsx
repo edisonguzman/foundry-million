@@ -37,7 +37,7 @@ AI will generate a business idea to solve it. Help us invent one million busines
               type="submit" 
               className="w-full py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all active:scale-[0.98]"
             >
-              Forge Idea — $10
+              Forge Initial Concept (Free)
             </button>
           </form>
         </div>

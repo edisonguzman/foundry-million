@@ -1,40 +1,57 @@
 "use server"
 
+import { db } from "@/db";
+import { ideas } from "@/db/schema";
+import OpenAI from "openai";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { db } from "../db"
-import { ideas } from "../db/schema"
-import OpenAI from "openai"
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+});
 
 export async function submitProblem(formData: FormData) {
-  const problem = formData.get("problem") as string
-  
-  // 1. Ask the AI for the business idea
+  const problem = formData.get("problem") as string;
+  if (!problem) return;
+
+  // 1. Stage 1: The Micro-Forge (Fast & Cost-Effective)
+  // We use gpt-4o-mini to keep the "free" API burn rate close to zero
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini", 
+    response_format: { type: "json_object" },
     messages: [
-      { role: "system", content: "You are the Architect of Opportunity. Transform a problem into a startup name, a punchy tagline, and a 2-sentence concept. Format as JSON." },
-      { role: "user", content: `Problem: ${problem}` }
-    ],
-    response_format: { type: "json_object" }
-  })
+      {
+        role: "system",
+        content: `You are the Architect of Opportunity for Foundry Million. 
+        Transform the user's problem into a startup name, a punchy tagline, and a 2-sentence concept. 
+        Return ONLY valid JSON with exactly three keys: "name", "tagline", and "concept".`
+      },
+      {
+        role: "user",
+        content: `Analyze this problem and forge a high-value solution: ${problem}`
+      }
+    ]
+  });
 
-  const aiData = JSON.parse(completion.choices[0].message.content || "{}")
+  const aiResponse = completion.choices[0].message.content;
+  if (!aiResponse) throw new Error("Failed to forge idea");
 
-  // 2. Save the real AI data to Neon
-  await db.insert(ideas).values({
-    tileIndex: Math.floor(Math.random() * 1000000),
+  const aiData = JSON.parse(aiResponse);
+
+  // 2. Save the Free Stage 1 data to Neon
+  // We use .returning() so we can grab the ID of the newly created idea
+  const [newIdea] = await db.insert(ideas).values({
+    tileIndex: Math.floor(Math.random() * 1000000), // We will make this sequential later
     problem: problem,
     businessName: aiData.name || "Unknown Startup",
-    tagline: aiData.tagline || "",
-    concept: aiData.concept || "",
-    tier: 1,
-    status: "paid",
-  })
+    tagline: aiData.tagline || "Forging in progress...",
+    concept: aiData.concept || "Concept generation failed.",
+    status: "pending", // It stays 'pending' until they pay for the blueprint
+  }).returning(); 
 
-  console.log(`Successfully forged: ${aiData.name}`)
+  // 3. Refresh the homepage feed so everyone sees the new idea
   revalidatePath("/");
+
+  // 4. Send the user directly to their new public Blueprint page
+  redirect(`/idea/${newIdea.id}`);
 }
