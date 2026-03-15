@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { db } from "@/db";
 import { ideas } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { submitProblem } from "./actions";
 import FoundryGrid from "@/components/FoundryGrid";
+import Link from "next/link"; // Added Link import
 
 export default async function Home() {
   const recentIdeas = await db.select().from(ideas).orderBy(desc(ideas.createdAt)).limit(5);
@@ -19,8 +19,7 @@ export default async function Home() {
             FOUNDRY MILLION
           </h1>
           <p className="text-gray-400 text-lg font-light tracking-wide max-w-md mx-auto">
-            AI may eliminate jobs — but it could also create one million new companies. Describe a problem you see in the world.
-AI will generate a business idea to solve it. Help us invent one million businesses for the future.
+            Transforming 1,000,000 problems into AI-forged enterprises.
           </p>
         </div>
 
@@ -29,7 +28,7 @@ AI will generate a business idea to solve it. Help us invent one million busines
           <form action={submitProblem} className="bg-black/80 p-6 rounded-[calc(1rem-1px)] space-y-4">
             <textarea 
               name="problem"
-              placeholder="What problem exists in the world today?"
+              placeholder="What friction exists in the world today?"
               className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none h-32 transition-all resize-none"
               required
             />
@@ -51,25 +50,31 @@ AI will generate a business idea to solve it. Help us invent one million busines
           </div>
 
           <div className="grid gap-6">
-           {recentIdeas.map((idea) => (
-  <Link href={`/idea/${idea.id}`} key={idea.id} className="block">
-    <div className="group relative p-8 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 idea-card-glow">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
-            {idea.businessName}
-          </h3>
-          <p className="text-blue-500/80 text-sm font-medium tracking-tight uppercase">
-            {idea.tagline}
-          </p>
+            {recentIdeas.map((idea) => (
+              <Link href={`/idea/${idea.id}`} key={idea.id} className="block group">
+                <div className="relative p-8 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 idea-card-glow">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                        {idea.businessName}
+                      </h3>
+                      <p className="text-blue-500/80 text-sm font-medium tracking-tight uppercase">
+                        {idea.tagline}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-mono text-gray-700 bg-gray-800/50 px-2 py-1 rounded">
+                      TILE #{idea.tileIndex}
+                    </span>
+                  </div>
+                  <p className="text-gray-400 leading-relaxed font-light italic line-clamp-2">
+                    &quot;{idea.concept}&quot;
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-        <span className="text-[10px] font-mono text-gray-700 bg-gray-800/50 px-2 py-1 rounded">
-          TILE #{idea.tileIndex}
-        </span>
-      </div>
-      <p className="text-gray-400 leading-relaxed font-light italic line-clamp-2">
-        &quot;{idea.concept}&quot;
-      </p>
+      </main>
     </div>
-  </Link>
-))}
+  );
+}
