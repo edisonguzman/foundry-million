@@ -30,7 +30,7 @@ export default async function Home({
             FOUNDRY<br/>MILLION
           </h1>
           <p className="text-xl text-blue-400 font-light tracking-[0.2em] uppercase">
-            Forging 1,000,000 Revenue Blueprints
+            AI may eliminate jobs — but it could also create one million new companies. Describe a problem you see in the world. AI will generate a business idea to solve it. Help us invent one million businesses for the future.
           </p>
         </header>
 
@@ -39,7 +39,7 @@ export default async function Home({
           <form action={submitProblem} className="relative group">
             <textarea
               name="problem"
-              placeholder="What problem in the world needs a $1M solution?"
+              placeholder="What problem exists in the world that you want to solve today?"
               className="w-full bg-gray-900/50 border-2 border-gray-800 rounded-3xl p-8 text-xl md:text-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none min-h-[200px] placeholder:text-gray-700"
               required
             />
