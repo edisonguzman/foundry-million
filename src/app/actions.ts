@@ -148,3 +148,15 @@ export async function deleteIdea(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/forge-command");
 }
+export async function updateOwnerEmail(formData: FormData) {
+  const id = parseInt(formData.get("id") as string);
+  const email = formData.get("email") as string;
+  if (isNaN(id)) return;
+
+  await db.update(ideas)
+    .set({ ownerEmail: email.toLowerCase().trim() || null })
+    .where(eq(ideas.id, id));
+
+  revalidatePath("/forge-command");
+  revalidatePath(`/idea/${id}`);
+}
