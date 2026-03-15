@@ -62,8 +62,8 @@ export async function createCheckoutSession(formData: FormData) {
   if (!ideaId) throw new Error("Idea ID is required");
 
   // Initialize Stripe
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-01-27" as any,
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2023-10-16" as any, // Changed from 2025-01-27
   });
 
   // Get the current domain so Stripe knows where to send them back

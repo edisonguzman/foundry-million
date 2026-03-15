@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import OpenAI from 'openai';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27' as any,
+  apiVersion: '2023-10-16' as any, // Changed from 2025-01-27
 });
 
 const openai = new OpenAI({
