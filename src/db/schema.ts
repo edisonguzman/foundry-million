@@ -11,7 +11,8 @@ export const ideas = pgTable("ideas", {
   
   // Tiers and Ownership
   tier: integer("tier").default(1),
-  ownerEmail: varchar("owner_email", { length: 255 }),
+  ownerEmail: varchar("owner_email", { length: 255 }), // Original creator
+  unlockedBy: jsonb("unlocked_by").default([]), // NEW: Array of emails who bought access
   
   // The Forge Engine Data
   status: varchar("status", { length: 50 }).default("pending").notNull(),

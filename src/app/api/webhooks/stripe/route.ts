@@ -6,15 +6,13 @@ import { eq } from 'drizzle-orm';
 import OpenAI from 'openai';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16' as any, // Changed from 2025-01-27
+  apiVersion: '2023-10-16' as any,
 });
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Vercel serverless functions time out after 10-15 seconds by default.
-// GPT-4o can take a bit longer for heavy tasks, so we explicitly tell Vercel to allow up to 60 seconds.
 export const maxDuration = 60; 
 
 export async function POST(req: Request) {
@@ -36,15 +34,29 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any;
     const ideaId = session.metadata?.ideaId;
-    const customerEmail = session.customer_details?.email?.toLowerCase().trim(); // Standardize immediately
+    const customerEmail = session.customer_details?.email?.toLowerCase().trim();
 
-    if (ideaId) {
+    if (ideaId && customerEmail) {
       try {
-        // 1. Fetch the original Stage 1 idea
         const [idea] = await db.select().from(ideas).where(eq(ideas.id, Number(ideaId)));
         
         if (idea) {
-          // 2. The Macro-Forge
+          // Grab the existing array of buyers, or start a new one
+          const currentUnlockedBy = Array.isArray(idea.unlockedBy) ? idea.unlockedBy : [];
+          if (!currentUnlockedBy.includes(customerEmail)) {
+            currentUnlockedBy.push(customerEmail);
+          }
+
+          // SCENARIO A: The plan is ALREADY generated. Just give them access.
+          if (idea.status === 'paid') {
+            await db.update(ideas)
+              .set({ unlockedBy: currentUnlockedBy })
+              .where(eq(ideas.id, Number(ideaId)));
+            console.log(`Granted access to existing Macro-Forge for Idea #${ideaId}`);
+            return NextResponse.json({ received: true });
+          }
+
+          // SCENARIO B: First time purchase. Fire OpenAI.
           const completion = await openai.chat.completions.create({
             model: "gpt-4o",
             response_format: { type: "json_object" },
@@ -53,15 +65,15 @@ export async function POST(req: Request) {
                 role: "system",
                 content: `You are an elite enterprise strategist. Generate a highly detailed, professional execution strategy.
                 Return ONLY valid JSON with exactly two keys: 
-                1. "businessPlan": A detailed JSON object.
-                2. "marketingPlan": A detailed JSON object.`
+                1. "businessPlan": A detailed JSON object breaking down the business model, target audience, and revenue streams.
+                2. "marketingPlan": A detailed JSON object breaking down the go-to-market strategy, acquisition channels, and 30-day roadmap.`
               },
               {
                 role: "user",
                 content: `Build the blueprint for this company:
                 Name: ${idea.businessName}
-                Problem: ${idea.problem}
-                Concept: ${idea.concept}`
+                Problem solved: ${idea.problem}
+                Core Concept: ${idea.concept}`
               }
             ]
           });
@@ -70,13 +82,14 @@ export async function POST(req: Request) {
           if (aiResponse) {
             const parsedPlans = JSON.parse(aiResponse);
 
-            // 3. Update database with Plans AND the Owner Email
             await db.update(ideas)
               .set({ 
                 status: 'paid',
-                ownerEmail: customerEmail, // The Digital Key
+                ownerEmail: idea.ownerEmail || customerEmail, // Set original owner if blank
+                unlockedBy: currentUnlockedBy, // Add to access list
                 businessPlan: parsedPlans.businessPlan,
-                marketingPlan: parsedPlans.marketingPlan
+                marketingPlan: parsedPlans.marketingPlan,
+                tier: 2
               })
               .where(eq(ideas.id, Number(ideaId)));
               
@@ -84,15 +97,17 @@ export async function POST(req: Request) {
           }
         }
       } catch (error) {
-        console.error("Macro-Forge Failed:", error);
-        // CRITICAL FIX: Even if AI fails, save the email so the user can at least access the page
-        // We set status to 'paid' so you can manually trigger a re-run later if needed.
-        await db.update(ideas)
-          .set({ 
-            status: 'paid', 
-            ownerEmail: customerEmail 
-          })
-          .where(eq(ideas.id, Number(ideaId)));
+        console.error("Macro-Forge Failed during webhook execution:", error);
+        // Fallback: Ensure the buyer still gets added to the array so they can access it when manually fixed
+        const [fallbackIdea] = await db.select().from(ideas).where(eq(ideas.id, Number(ideaId)));
+        if (fallbackIdea) {
+           const fallbackUnlocked = Array.isArray(fallbackIdea.unlockedBy) ? fallbackIdea.unlockedBy : [];
+           if (!fallbackUnlocked.includes(customerEmail)) fallbackUnlocked.push(customerEmail);
+           
+           await db.update(ideas)
+             .set({ status: 'paid', unlockedBy: fallbackUnlocked })
+             .where(eq(ideas.id, Number(ideaId)));
+        }
       }
     }
   }

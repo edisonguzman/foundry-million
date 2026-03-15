@@ -107,25 +107,31 @@ export async function createCheckoutSession(formData: FormData) {
 
 export async function verifyAccess(formData: FormData) {
   const id = formData.get("id") as string;
-  const emailInput = formData.get("email") as string;
+  const emailInput = formData.get("email")?.toString().toLowerCase().trim();
+
+  if (!emailInput || !id) return;
 
   const [idea] = await db.select().from(ideas).where(eq(ideas.id, Number(id)));
 
-  if (idea && idea.ownerEmail?.toLowerCase().trim() === emailInput.toLowerCase().trim()) {
-    const cookieStore = await cookies();
-    cookieStore.set(`access_${id}`, "granted", { 
-      maxAge: 60 * 60 * 24 * 30, 
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-    });
-    
-    revalidatePath(`/idea/${id}`);
-    // Added redirect to refresh the state for the user immediately
-    redirect(`/idea/${id}`);
-  } else {
-    // Optional: redirect with error param if you want to show a toast/message
-    redirect(`/idea/${id}?error=invalid_email`);
+  if (idea) {
+    const isOriginalOwner = idea.ownerEmail?.toLowerCase().trim() === emailInput;
+    const unlockedList = Array.isArray(idea.unlockedBy) ? idea.unlockedBy : [];
+    const isInUnlockedList = unlockedList.includes(emailInput);
+
+    if (isOriginalOwner || isInUnlockedList) {
+      const cookieStore = await cookies();
+      cookieStore.set(`access_${id}`, "granted", { 
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+      });
+      
+      revalidatePath(`/idea/${id}`);
+      redirect(`/idea/${id}`);
+    } else {
+      redirect(`/idea/${id}?error=invalid_email`);
+    }
   }
 }
 
