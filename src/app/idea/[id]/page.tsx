@@ -65,14 +65,17 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
   const [idea] = await db.select().from(ideas).where(eq(ideas.id, ideaId));
   if (!idea) notFound();
 
-  // Check for the Secure Access Cookie
-  const cookieStore = await cookies();
-  const hasAccess = cookieStore.get(`access_${ideaId}`)?.value === "granted";
-  
+  // 1. Check if the project is actually paid (Macro-Forge status)
   const isPaid = idea.status === "paid";
+
+  // 2. Check for the Secure Access Cookie
+  // This cookie is set by verifyAccess in actions.ts after email verification
+  const cookieStore = await cookies();
+  const hasAccess = (await cookieStore).get(`access_${ideaId}`)?.value === "granted";
+  
   const showFullPlan = isPaid && hasAccess;
 
-  // Safely parse the JSON data
+  // Safely parse JSON
   const businessPlan = typeof idea.businessPlan === 'string' ? JSON.parse(idea.businessPlan) : idea.businessPlan;
   const marketingPlan = typeof idea.marketingPlan === 'string' ? JSON.parse(idea.marketingPlan) : idea.marketingPlan;
 
@@ -83,7 +86,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
           ← Return to Forge
         </Link>
 
-        {/* Public Header - Always Visible */}
+        {/* Public Header */}
         <header className="mb-16 pb-12 border-b border-gray-800">
           <div className="flex justify-between items-start mb-6">
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">
@@ -103,35 +106,21 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
           </div>
         </header>
 
-        {/* Broadcast Bar - Only visible if the user has access/paid */}
-{showFullPlan && (
-  <div className="mb-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex flex-col md:flex-row items-center justify-between gap-4">
-    <div className="flex items-center gap-3">
-      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-      <p className="text-xs font-mono uppercase tracking-widest text-blue-400">Blueprint Broadcast Ready</p>
-    </div>
-    <div className="flex gap-2">
-      {/* Twitter/X Share */}
-      <a 
-        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just forged a new $1M business blueprint: ${idea.businessName}. Check out Tile #${idea.tileIndex} on @FoundryMillion!`)}&url=${encodeURIComponent(`https://www.foundrymillion.com/idea/${idea.id}`)}`}
-        target="_blank"
-        className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
-      >
-        Share on X
-      </a>
-      {/* LinkedIn Share */}
-      <a 
-        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.foundrymillion.com/idea/${idea.id}`)}`}
-        target="_blank"
-        className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
-      >
-        LinkedIn
-      </a>
-    </div>
-  </div>
-)}
+        {/* Broadcast Bar */}
+        {showFullPlan && (
+          <div className="mb-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+              <p className="text-xs font-mono uppercase tracking-widest text-blue-400">Blueprint Broadcast Ready</p>
+            </div>
+            <div className="flex gap-2">
+              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just forged a new $1M business blueprint: ${idea.businessName}. Check out Tile #${idea.tileIndex} on @FoundryMillion!`)}&url=${encodeURIComponent(`https://www.foundrymillion.com/idea/${idea.id}`)}`} target="_blank" className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">Share on X</a>
+              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.foundrymillion.com/idea/${idea.id}`)}`} target="_blank" className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">LinkedIn</a>
+            </div>
+          </div>
+        )}
 
-        {/* LOGIC GATE: Show Content vs Unlock Form vs Buy Button */}
+        {/* LOGIC GATE */}
         {showFullPlan ? (
           /* STATE 1: PAID AND VERIFIED */
           <section className="grid md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -151,7 +140,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
             </div>
           </section>
         ) : isPaid ? (
-          /* STATE 2: PAID BUT NOT VERIFIED (ASK FOR EMAIL KEY) */
+          /* STATE 2: PAID BUT NOT VERIFIED */
           <section className="p-12 rounded-2xl border border-blue-500/30 bg-gray-900/50 text-center max-w-2xl mx-auto backdrop-blur-md">
             <div className="w-16 h-16 mx-auto bg-blue-500/20 rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,7 +148,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
                 </svg>
             </div>
             <h2 className="text-2xl font-bold mb-4">Secure Blueprint Access</h2>
-            <p className="text-gray-400 mb-8 text-sm">Enter the email used during purchase to verify ownership and unlock this strategy.</p>
+            <p className="text-gray-400 mb-8 text-sm">This strategic plan is secured. Enter the email used at checkout to unlock access.</p>
             <form action={verifyAccess} className="flex flex-col md:flex-row gap-3">
               <input type="hidden" name="id" value={idea.id} />
               <input 
@@ -175,7 +164,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
             </form>
           </section>
         ) : (
-          /* STATE 3: NOT PAID (SHOW BUY BUTTON) */
+          /* STATE 3: NOT PAID (UPSELL) */
           <section className="relative p-12 rounded-2xl border border-white/10 bg-gray-900/20 overflow-hidden text-center flex flex-col items-center justify-center min-h-[400px]">
             <div className="absolute inset-0 blur-md opacity-20 pointer-events-none select-none flex flex-col gap-4 p-8">
               <div className="h-6 bg-gray-600 rounded w-3/4 mx-auto"></div>
@@ -189,8 +178,8 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white">Unlock the Execution Plan</h2>
-              <p className="text-gray-400">Get the comprehensive AI-generated business model and marketing strategy.</p>
+              <h2 className="text-3xl font-bold text-white">Unlock Macro-Forge</h2>
+              <p className="text-gray-400">Generate the full business plan, marketing strategy, and market positioning for this concept.</p>
               
               <form action={createCheckoutSession}>
                 <input type="hidden" name="ideaId" value={idea.id} />
@@ -198,7 +187,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
                   Unlock Blueprint — $10
                 </button>
               </form>
-              <p className="text-xs text-gray-500 uppercase tracking-widest">Secure Checkout via Stripe</p>
+              <p className="text-xs text-gray-500 uppercase tracking-widest">Powered by Stripe</p>
             </div>
           </section>
         )}

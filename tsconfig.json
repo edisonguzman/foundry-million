@@ -31,6 +31,6 @@
     "**/*.ts",
     "**/*.tsx",
     "src/db/schema.ts"
-  ],
+, "generate-map.js"  ],
   "exclude": ["node_modules"]
 }

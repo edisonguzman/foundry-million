@@ -48,10 +48,9 @@ export async function submitProblem(formData: FormData) {
     .orderBy(desc(ideas.tileIndex))
     .limit(1);
 
-  // If there are no ideas yet, start at 1. Otherwise, add 1 to the highest.
   const nextTileIndex = lastIdea?.tileIndex ? lastIdea.tileIndex + 1 : 1;
 
-  // 3. Save the Free Stage 1 data to Neon with the sequential ID
+  // 3. Save the Free Stage 1 data
   const [newIdea] = await db.insert(ideas).values({
     tileIndex: nextTileIndex,
     problem: problem,
@@ -64,20 +63,18 @@ export async function submitProblem(formData: FormData) {
   revalidatePath("/");
   redirect(`/idea/${newIdea.id}`);
 }
+
 export async function createCheckoutSession(formData: FormData) {
   const ideaId = formData.get("ideaId") as string;
   if (!ideaId) throw new Error("Idea ID is required");
 
-  // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2023-10-16" as any, // Changed from 2025-01-27
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2023-10-16" as any,
   });
 
-  // Get the current domain so Stripe knows where to send them back
   const headersList = await headers();
   const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-  // Create the checkout session
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: [
@@ -88,7 +85,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
             name: `Unlock Blueprint: Tile #${ideaId}`,
             description: "Full AI-Generated Business & Marketing Strategy",
           },
-          unit_amount: 1000, // $10.00 in cents
+          unit_amount: 1000, 
         },
         quantity: 1,
       },
@@ -97,57 +94,62 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     success_url: `${origin}/idea/${ideaId}?success=true`,
     cancel_url: `${origin}/idea/${ideaId}?canceled=true`,
     metadata: {
-      ideaId: ideaId, // Crucial: This tells the webhook WHICH idea to mark as 'paid'
+      ideaId: ideaId, 
     },
   });
 
-  // Redirect the user to Stripe's hosted checkout page
   if (session.url) {
     redirect(session.url);
   } else {
     throw new Error("Failed to create Stripe session");
   }
 }
+
 export async function verifyAccess(formData: FormData) {
   const id = formData.get("id") as string;
   const emailInput = formData.get("email") as string;
 
   const [idea] = await db.select().from(ideas).where(eq(ideas.id, Number(id)));
 
-  // Standardize both to lowercase to prevent "Capital Letter" login issues
   if (idea && idea.ownerEmail?.toLowerCase().trim() === emailInput.toLowerCase().trim()) {
     const cookieStore = await cookies();
     cookieStore.set(`access_${id}`, "granted", { 
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30, 
       httpOnly: true,
-      secure: true 
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
     });
     
     revalidatePath(`/idea/${id}`);
+    // Added redirect to refresh the state for the user immediately
+    redirect(`/idea/${id}`);
+  } else {
+    // Optional: redirect with error param if you want to show a toast/message
+    redirect(`/idea/${id}?error=invalid_email`);
   }
 }
+
 export async function upvoteIdea(formData: FormData) {
   const id = parseInt(formData.get("id") as string);
   if (isNaN(id)) return;
 
-  // Atomically increment the vote count directly in the database
   await db.update(ideas)
     .set({ upvotes: sql`${ideas.upvotes} + 1` })
     .where(eq(ideas.id, id));
 
   revalidatePath("/");
 }
+
 export async function deleteIdea(formData: FormData) {
   const id = parseInt(formData.get("id") as string);
   if (isNaN(id)) return;
 
-  // Vaporize the entry from the Neon database
   await db.delete(ideas).where(eq(ideas.id, id));
 
-  // Refresh both the homepage and the admin dashboard
   revalidatePath("/");
   revalidatePath("/forge-command");
 }
+
 export async function updateOwnerEmail(formData: FormData) {
   const id = parseInt(formData.get("id") as string);
   const email = formData.get("email") as string;

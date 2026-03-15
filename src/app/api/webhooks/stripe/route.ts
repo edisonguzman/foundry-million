@@ -36,33 +36,32 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any;
     const ideaId = session.metadata?.ideaId;
-    const customerEmail = session.customer_details?.email;
+    const customerEmail = session.customer_details?.email?.toLowerCase().trim(); // Standardize immediately
 
     if (ideaId) {
       try {
-        // 1. Fetch the original Stage 1 idea to give the AI context
+        // 1. Fetch the original Stage 1 idea
         const [idea] = await db.select().from(ideas).where(eq(ideas.id, Number(ideaId)));
         
         if (idea) {
-          // 2. The Macro-Forge: Fire GPT-4o to build the comprehensive plans
+          // 2. The Macro-Forge
           const completion = await openai.chat.completions.create({
             model: "gpt-4o",
             response_format: { type: "json_object" },
             messages: [
               {
                 role: "system",
-                content: `You are an elite enterprise strategist. The user has provided a core business concept. 
-                Generate a highly detailed, professional execution strategy.
+                content: `You are an elite enterprise strategist. Generate a highly detailed, professional execution strategy.
                 Return ONLY valid JSON with exactly two keys: 
-                1. "businessPlan": A detailed JSON object breaking down the business model, target audience, and revenue streams.
-                2. "marketingPlan": A detailed JSON object breaking down the go-to-market strategy, acquisition channels, and 30-day roadmap.`
+                1. "businessPlan": A detailed JSON object.
+                2. "marketingPlan": A detailed JSON object.`
               },
               {
                 role: "user",
                 content: `Build the blueprint for this company:
                 Name: ${idea.businessName}
-                Problem solved: ${idea.problem}
-                Core Concept: ${idea.concept}`
+                Problem: ${idea.problem}
+                Concept: ${idea.concept}`
               }
             ]
           });
@@ -71,11 +70,11 @@ export async function POST(req: Request) {
           if (aiResponse) {
             const parsedPlans = JSON.parse(aiResponse);
 
-            // 3. Update the database: Mark as paid AND save the generated plans
+            // 3. Update database with Plans AND the Owner Email
             await db.update(ideas)
               .set({ 
                 status: 'paid',
-                ownerEmail: customerEmail,
+                ownerEmail: customerEmail, // The Digital Key
                 businessPlan: parsedPlans.businessPlan,
                 marketingPlan: parsedPlans.marketingPlan
               })
@@ -85,13 +84,18 @@ export async function POST(req: Request) {
           }
         }
       } catch (error) {
-        console.error("Macro-Forge Failed during webhook execution:", error);
-        // Even if generation fails, we should mark them as paid so we can retry or refund them
-        await db.update(ideas).set({ status: 'paid' }).where(eq(ideas.id, Number(ideaId)));
+        console.error("Macro-Forge Failed:", error);
+        // CRITICAL FIX: Even if AI fails, save the email so the user can at least access the page
+        // We set status to 'paid' so you can manually trigger a re-run later if needed.
+        await db.update(ideas)
+          .set({ 
+            status: 'paid', 
+            ownerEmail: customerEmail 
+          })
+          .where(eq(ideas.id, Number(ideaId)));
       }
     }
   }
 
-  // Always return a 200 quickly so Stripe knows the event was received
   return NextResponse.json({ received: true });
 }
