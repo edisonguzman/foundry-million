@@ -6,6 +6,43 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { createCheckoutSession } from "@/app/actions";
 
+// --- THE NEW PREMIUM RENDERER ---
+// This automatically formats whatever JSON structure OpenAI sends back
+const DataRenderer = ({ data }: { data: any }) => {
+  if (typeof data === 'string' || typeof data === 'number') {
+    return <p className="text-gray-300 leading-relaxed text-sm">{data}</p>;
+  }
+  
+  if (Array.isArray(data)) {
+    return (
+      <ul className="list-disc list-outside ml-4 space-y-2 text-gray-300 text-sm">
+        {data.map((item, i) => (
+          <li key={i}><DataRenderer data={item} /></li>
+        ))}
+      </ul>
+    );
+  }
+  
+  if (typeof data === 'object' && data !== null) {
+    return (
+      <div className="space-y-4 mt-3">
+        {Object.entries(data).map(([key, value]) => (
+          <div key={key} className="border-l border-gray-800 pl-4 py-1">
+            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+              {/* Converts camelCase keys (like "goToMarketStrategy") into readable text ("Go To Market Strategy") */}
+              {key.replace(/([A-Z])/g, ' $1').trim()} 
+            </h4>
+            <DataRenderer data={value} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  return null;
+};
+
+// --- DYNAMIC METADATA ---
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const ideaId = parseInt(id);
@@ -20,6 +57,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
+// --- MAIN PAGE COMPONENT ---
 export default async function BlueprintPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const ideaId = parseInt(id);
@@ -30,6 +68,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
 
   const isPaid = idea.status === "paid";
 
+  // Safely parse the JSON data
   const businessPlan = typeof idea.businessPlan === 'string' ? JSON.parse(idea.businessPlan) : idea.businessPlan;
   const marketingPlan = typeof idea.marketingPlan === 'string' ? JSON.parse(idea.marketingPlan) : idea.marketingPlan;
 
@@ -48,7 +87,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
             </h1>
             <div className="text-right">
               <span className="block text-xs font-mono text-gray-500 uppercase tracking-widest mb-1">Asset ID</span>
-              <span className={`inline-block px-3 py-1 rounded-md font-mono text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+              <span className={`inline-block px-3 py-1 rounded-md font-mono text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
                 TILE #{idea.tileIndex} {isPaid ? "— SECURED" : ""}
               </span>
             </div>
@@ -63,21 +102,30 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
         {/* The Locked/Unlocked Content Section */}
         {isPaid ? (
           <section className="grid md:grid-cols-2 gap-8">
-            <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-3">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span> Strategic Blueprint
+            {/* Business Plan Column */}
+            <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black shadow-2xl">
+              <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-gray-800 pb-4">
+                <span className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></span> 
+                Strategic Blueprint
               </h2>
-              <pre className="text-gray-400 font-mono text-sm whitespace-pre-wrap">
-                {businessPlan ? JSON.stringify(businessPlan, null, 2) : "Blueprint is actively generating. Refresh in 30 seconds."}
-              </pre>
+              {businessPlan ? (
+                <DataRenderer data={businessPlan} />
+              ) : (
+                <p className="text-gray-500 animate-pulse">Forging blueprint data...</p>
+              )}
             </div>
-            <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-3">
-                <span className="w-2 h-2 rounded-full bg-purple-500"></span> Market Positioning
+
+            {/* Marketing Plan Column */}
+            <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black shadow-2xl">
+              <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-gray-800 pb-4">
+                <span className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]"></span> 
+                Market Positioning
               </h2>
-              <pre className="text-gray-400 font-mono text-sm whitespace-pre-wrap">
-                {marketingPlan ? JSON.stringify(marketingPlan, null, 2) : "Marketing strategy is actively generating. Refresh in 30 seconds."}
-              </pre>
+              {marketingPlan ? (
+                <DataRenderer data={marketingPlan} />
+              ) : (
+                <p className="text-gray-500 animate-pulse">Forging marketing strategy...</p>
+              )}
             </div>
           </section>
         ) : (
