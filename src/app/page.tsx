@@ -102,7 +102,7 @@ export default async function Home({
                     <p className="text-blue-500/80 text-sm font-medium uppercase">{idea.tagline}</p>
                   </div>
                   <span className="text-[10px] font-mono text-gray-700 bg-gray-800/50 px-2 py-1 rounded">
-                    TILE #{idea.tileIndex}
+                    TILE {idea.tileIndex} OF 1 Million
                   </span>
                 </div>
                 <p className="text-gray-400 italic line-clamp-2">"{idea.concept}"</p>

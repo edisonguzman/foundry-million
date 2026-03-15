@@ -94,9 +94,9 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
             </h1>
             <div className="text-right">
               <span className="block text-xs font-mono text-gray-500 uppercase tracking-widest mb-1">Asset ID</span>
-              <span className={`inline-block px-3 py-1 rounded-md font-mono text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
-                TILE #{idea.tileIndex} {isPaid ? "— SECURED" : ""}
-              </span>
+<span className={`inline-block px-3 py-1 rounded-md font-mono text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+  TILE {idea.tileIndex} OF 1 Million {isPaid ? "— SECURED" : ""}
+</span>
             </div>
           </div>
           <p className="text-2xl text-blue-400 font-light tracking-tight mb-8">{idea.tagline}</p>
