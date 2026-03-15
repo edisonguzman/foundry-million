@@ -118,3 +118,14 @@ export async function upvoteIdea(formData: FormData) {
 
   revalidatePath("/");
 }
+export async function deleteIdea(formData: FormData) {
+  const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) return;
+
+  // Vaporize the entry from the Neon database
+  await db.delete(ideas).where(eq(ideas.id, id));
+
+  // Refresh both the homepage and the admin dashboard
+  revalidatePath("/");
+  revalidatePath("/forge-command");
+}
