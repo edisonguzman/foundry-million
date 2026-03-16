@@ -4,9 +4,10 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
-import { createCheckoutSession, verifyAccess } from "@/app/actions";
+// Added upvoteIdea to the imports below:
+import { createCheckoutSession, verifyAccess, upvoteIdea } from "@/app/actions";
 import { cookies } from "next/headers";
-import PrintButton from "./PrintButton"; // <-- Imported the new client component
+import PrintButton from "./PrintButton";
 
 // --- THE PREMIUM RENDERER ---
 const DataRenderer = ({ data }: { data: any }) => {
@@ -94,13 +95,27 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-500 print:from-black print:to-black bg-clip-text text-transparent print:text-black">
               {idea.businessName}
             </h1>
-            <div className="text-right">
-              <span className="block text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 print:text-gray-800">Asset ID</span>
-              <span className={`inline-block px-3 py-1 rounded-md font-mono text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)] print:border-gray-400 print:text-black print:shadow-none print:bg-transparent' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
-                TILE {idea.tileIndex} OF 1M {isPaid ? "— SECURED" : ""}
-              </span>
+            
+            {/* Asset ID & Upvote Section */}
+            <div className="text-right flex flex-col items-end gap-3">
+              <div>
+                <span className="block text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 print:text-gray-800">Asset ID</span>
+                <span className={`inline-block px-3 py-1 rounded-md font-mono text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)] print:border-gray-400 print:text-black print:shadow-none print:bg-transparent' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+                  TILE {idea.tileIndex} OF 1M {isPaid ? "— SECURED" : ""}
+                </span>
+              </div>
+              
+              {/* NEW: Upvote Form */}
+              <form action={upvoteIdea} className="print:hidden">
+                <input type="hidden" name="id" value={idea.id} />
+                <button type="submit" className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 transition-all cursor-pointer group">
+                  <span className="group-hover:scale-110 transition-transform origin-bottom">🔥</span>
+                  <span className="font-mono text-sm font-bold">{idea.upvotes}</span>
+                </button>
+              </form>
             </div>
           </div>
+          
           <p className="text-2xl text-blue-400 font-light tracking-tight mb-8 print:text-black">{idea.tagline}</p>
           <div className="p-6 rounded-xl bg-gray-900/50 border border-gray-800 backdrop-blur-sm print:border-gray-300 print:bg-transparent">
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-3 print:text-gray-800">Core Concept</h3>
@@ -132,7 +147,6 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
         {/* LOGIC GATE */}
         {showFullPlan ? (
           /* STATE 1: PAID AND VERIFIED (HAS ACCESS) */
-          /* Note: The print: classes are merged directly into these existing containers */
           <section className="grid md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 print:block print:space-y-8">
             <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black shadow-2xl print:border-gray-300 print:bg-none print:shadow-none print:break-inside-avoid">
               <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-gray-800 pb-4 print:text-black print:border-gray-300">
