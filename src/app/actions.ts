@@ -190,3 +190,28 @@ export async function updateOwnerEmail(formData: FormData) {
   revalidatePath("/forge-command");
   revalidatePath(`/idea/${id}`);
 }
+export async function loginToVault(formData: FormData) {
+  const email = formData.get("email")?.toString().toLowerCase().trim();
+  if (!email) return;
+
+  const cookieStore = await cookies();
+  
+  // Set a secure vault session cookie valid for 30 days
+  cookieStore.set("vault_email", email, {
+    maxAge: 60 * 60 * 24 * 30,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
+
+  revalidatePath("/vault");
+  redirect("/vault");
+}
+
+export async function logoutFromVault() {
+  const cookieStore = await cookies();
+  cookieStore.delete("vault_email");
+  
+  revalidatePath("/vault");
+  redirect("/vault");
+}
