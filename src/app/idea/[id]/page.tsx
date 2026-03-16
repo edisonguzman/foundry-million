@@ -96,18 +96,20 @@ export default async function BlueprintPage({
           ← Return to Forge
         </Link>
 
-        {/* Public Header */}
+ {/* Public Header */}
         <header className="mb-16 pb-12 border-b border-gray-800 print:border-gray-300">
-          <div className="flex justify-between items-start mb-6">
+          
+          {/* --- FIX: Responsive Header Flexbox --- */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-500 print:from-black print:to-black bg-clip-text text-transparent print:text-black">
               {idea.businessName}
             </h1>
             
             {/* Asset ID & Upvote Section */}
-            <div className="text-right flex flex-col items-end gap-3">
+            <div className="w-full md:w-auto flex flex-row md:flex-col justify-between md:items-end items-center gap-3 border-t md:border-t-0 border-gray-800 pt-4 md:pt-0">
               <div>
-                <span className="block text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 print:text-gray-800">Asset ID</span>
-                <span className={`inline-block px-3 py-1 rounded-md font-mono text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)] print:border-gray-400 print:text-black print:shadow-none print:bg-transparent' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+                <span className="block text-[10px] md:text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 print:text-gray-800">Asset ID</span>
+                <span className={`inline-block px-3 py-1 rounded-md font-mono text-xs md:text-sm border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)] print:border-gray-400 print:text-black print:shadow-none print:bg-transparent' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
                   TILE {idea.tileIndex} OF 1M {isPaid ? "— SECURED" : ""}
                 </span>
               </div>
@@ -122,6 +124,8 @@ export default async function BlueprintPage({
               </form>
             </div>
           </div>
+          
+          {/* --- END FIX --- */}
           
           <p className="text-2xl text-blue-400 font-light tracking-tight mb-8 print:text-black">{idea.tagline}</p>
           
