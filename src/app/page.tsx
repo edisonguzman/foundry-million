@@ -78,18 +78,16 @@ export default async function Home({
           {recentIdeas.map((idea) => (
             <div key={idea.id} className="relative p-6 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 flex gap-6">
               
-              {/* Upvote Column */}
-              <form action={upvoteIdea} className="flex flex-col items-center justify-start pt-2 min-w-[3rem]">
+              {/* --- UPDATED: Upvote Column (Matches Blueprint Page) --- */}
+              <form action={upvoteIdea} className="flex flex-col items-center justify-start pt-1 min-w-[3.5rem]">
                 <input type="hidden" name="id" value={idea.id} />
                 <button 
                   type="submit" 
-                  className="text-gray-600 hover:text-orange-500 hover:-translate-y-1 transition-all p-2 group"
+                  className="flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl bg-gray-900/50 hover:bg-orange-500/10 border border-transparent hover:border-orange-500/20 text-gray-500 hover:text-orange-400 transition-all cursor-pointer group"
                 >
-                  <svg className="w-8 h-8 group-hover:fill-orange-500/10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.048 8.287 8.287 0 0 0 9 9.6a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" />
-                  </svg>
+                  <span className="text-xl group-hover:scale-110 transition-transform origin-bottom">🔥</span>
+                  <span className="font-mono text-sm font-bold">{idea.upvotes}</span>
                 </button>
-                <span className="font-mono text-xl font-bold text-white">{idea.upvotes}</span>
               </form>
 
               {/* Content Column */}
