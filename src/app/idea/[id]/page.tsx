@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
-// Added upvoteIdea to the imports below:
 import { createCheckoutSession, verifyAccess, upvoteIdea } from "@/app/actions";
 import { cookies } from "next/headers";
 import PrintButton from "./PrintButton";
@@ -105,7 +104,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
                 </span>
               </div>
               
-              {/* NEW: Upvote Form */}
+              {/* Upvote Form */}
               <form action={upvoteIdea} className="print:hidden">
                 <input type="hidden" name="id" value={idea.id} />
                 <button type="submit" className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 transition-all cursor-pointer group">
@@ -117,6 +116,15 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
           </div>
           
           <p className="text-2xl text-blue-400 font-light tracking-tight mb-8 print:text-black">{idea.tagline}</p>
+          
+          {/* --- NEW: THE CATALYST (Original Prompt) --- */}
+          <div className="mb-6">
+            <h3 className="text-[10px] font-mono uppercase tracking-widest text-red-500 mb-2 print:text-black">System Input // The Catalyst</h3>
+            <div className="bg-black/50 border border-gray-800/60 rounded-lg p-4 font-mono text-sm text-gray-400 border-l-2 border-l-red-500 print:border-gray-300 print:text-black print:bg-transparent">
+              &gt; {idea.problem}
+            </div>
+          </div>
+
           <div className="p-6 rounded-xl bg-gray-900/50 border border-gray-800 backdrop-blur-sm print:border-gray-300 print:bg-transparent">
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-3 print:text-gray-800">Core Concept</h3>
             <p className="text-gray-300 leading-relaxed text-lg print:text-black">{idea.concept}</p>
