@@ -27,29 +27,43 @@ export async function GET(request: Request) {
     .from(ideas)
     .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-  // Define CSV Headers
+  // Define CSV Headers including the AI data
   const headers = [
     "Tile Index", 
     "Business Name", 
+    "Tagline",
+    "Concept",
     "Problem", 
     "Status", 
     "Owner Email", 
     "Upvotes", 
-    "Created At"
+    "Created At",
+    "Business Plan (JSON)",
+    "Marketing Plan (JSON)"
   ];
 
-  // Map data to CSV rows, escaping commas and quotes inside text fields
-  const rows = data.map((idea) => [
-    idea.tileIndex,
-    `"${(idea.businessName || "").replace(/"/g, '""')}"`,
-    `"${(idea.problem || "").replace(/"/g, '""')}"`,
-    idea.status,
-    idea.ownerEmail || "",
-    idea.upvotes,
-    idea.createdAt.toISOString()
-  ]);
+  // Map data to CSV rows, stringifying JSON and escaping commas/quotes inside text fields
+  const rows = data.map((idea) => {
+    // Safely stringify the JSON plans if they exist
+    const bPlanString = idea.businessPlan ? JSON.stringify(idea.businessPlan) : "";
+    const mPlanString = idea.marketingPlan ? JSON.stringify(idea.marketingPlan) : "";
 
-  // Join everything together
+    return [
+      idea.tileIndex,
+      `"${(idea.businessName || "").replace(/"/g, '""')}"`,
+      `"${(idea.tagline || "").replace(/"/g, '""')}"`,
+      `"${(idea.concept || "").replace(/"/g, '""')}"`,
+      `"${(idea.problem || "").replace(/"/g, '""')}"`,
+      idea.status,
+      idea.ownerEmail || "",
+      idea.upvotes,
+      idea.createdAt.toISOString(),
+      `"${bPlanString.replace(/"/g, '""')}"`,
+      `"${mPlanString.replace(/"/g, '""')}"`
+    ];
+  });
+
+  // Join headers and rows
   const csvContent = [
     headers.join(","),
     ...rows.map((row) => row.join(","))
