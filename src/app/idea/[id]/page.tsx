@@ -58,9 +58,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 // --- MAIN PAGE COMPONENT ---
-export default async function BlueprintPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BlueprintPage({ 
+  params,
+  searchParams,
+}: { 
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { id } = await params;
   const ideaId = parseInt(id);
+  const resolvedSearchParams = await searchParams;
+  const isSuccess = resolvedSearchParams.success === "true";
 
   if (isNaN(ideaId)) notFound();
   const [idea] = await db.select().from(ideas).where(eq(ideas.id, ideaId));
@@ -117,7 +125,7 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
           
           <p className="text-2xl text-blue-400 font-light tracking-tight mb-8 print:text-black">{idea.tagline}</p>
           
-          {/* --- NEW: THE CATALYST (Original Prompt) --- */}
+          {/* THE CATALYST (Original Prompt) */}
           <div className="mb-6">
             <h3 className="text-[10px] font-mono uppercase tracking-widest text-red-500 mb-2 print:text-black">System Input // The Catalyst</h3>
             <div className="bg-black/50 border border-gray-800/60 rounded-lg p-4 font-mono text-sm text-gray-400 border-l-2 border-l-red-500 print:border-gray-300 print:text-black print:bg-transparent">
@@ -154,23 +162,62 @@ export default async function BlueprintPage({ params }: { params: Promise<{ id: 
 
         {/* LOGIC GATE */}
         {showFullPlan ? (
-          /* STATE 1: PAID AND VERIFIED (HAS ACCESS) */
-          <section className="grid md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 print:block print:space-y-8">
-            <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black shadow-2xl print:border-gray-300 print:bg-none print:shadow-none print:break-inside-avoid">
-              <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-gray-800 pb-4 print:text-black print:border-gray-300">
-                <span className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)] print:hidden"></span> 
-                Strategic Blueprint
-              </h2>
-              <DataRenderer data={businessPlan} />
+          <>
+            {/* --- NEW: POST-PURCHASE UPSELL BANNER --- */}
+            {isSuccess && (
+              <div className="print:hidden mb-12 p-8 rounded-2xl bg-gradient-to-r from-green-900/40 to-blue-900/40 border border-green-500/30 text-center animate-in fade-in zoom-in duration-500 shadow-2xl">
+                <div className="w-16 h-16 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-4 border border-green-500/50">
+                  <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-black uppercase tracking-widest text-white mb-3">Blueprint Unlocked</h2>
+                <p className="text-gray-300 mb-6 max-w-xl mx-auto text-sm leading-relaxed">
+                  Your $1M strategic plan is ready below. But a plan is only as good as its execution. Join our private audio community to learn the real-world mechanics of running this business.
+                </p>
+                <a 
+                  href="https://esp.espmeet.com/invitation?code=E94AAD" 
+                  target="_blank" 
+                  className="inline-block px-8 py-4 bg-white text-black font-black uppercase tracking-widest rounded-xl hover:bg-green-400 hover:text-black transition-all shadow-[0_0_20px_rgba(74,222,128,0.2)]"
+                >
+                  Access The Masterclass
+                </a>
+              </div>
+            )}
+
+            {/* STATE 1: PAID AND VERIFIED (HAS ACCESS) */}
+            <section className="grid md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 print:block print:space-y-8">
+              <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black shadow-2xl print:border-gray-300 print:bg-none print:shadow-none print:break-inside-avoid">
+                <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-gray-800 pb-4 print:text-black print:border-gray-300">
+                  <span className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)] print:hidden"></span> 
+                  Strategic Blueprint
+                </h2>
+                <DataRenderer data={businessPlan} />
+              </div>
+              <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black shadow-2xl print:border-gray-300 print:bg-none print:shadow-none print:break-inside-avoid print:mt-8">
+                <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-gray-800 pb-4 print:text-black print:border-gray-300">
+                  <span className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)] print:hidden"></span> 
+                  Market Positioning
+                </h2>
+                <DataRenderer data={marketingPlan} />
+              </div>
+            </section>
+
+            {/* --- NEW: PERSISTENT EXECUTION BLOCK --- */}
+            <div className="print:hidden mt-12 p-8 rounded-2xl border border-blue-500/20 bg-gray-900/40 text-center">
+              <h3 className="text-xl font-bold uppercase tracking-widest text-white mb-3">Next Step: Master the Mechanics</h3>
+              <p className="text-gray-400 text-sm max-w-2xl mx-auto mb-6 leading-relaxed">
+                You have the strategy. Now get the skills. Join our private audio community to learn the real-world mechanics of running a business—from operations to scaling.
+              </p>
+              <a 
+                href="https://esp.espmeet.com/invitation?code=E94AAD" 
+                target="_blank" 
+                className="inline-block px-8 py-3 bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white font-bold uppercase tracking-widest rounded-xl transition-all"
+              >
+                Access the Masterclass
+              </a>
             </div>
-            <div className="p-8 rounded-2xl border border-white/5 bg-gradient-to-b from-gray-900/40 to-black shadow-2xl print:border-gray-300 print:bg-none print:shadow-none print:break-inside-avoid print:mt-8">
-              <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-gray-800 pb-4 print:text-black print:border-gray-300">
-                <span className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)] print:hidden"></span> 
-                Market Positioning
-              </h2>
-              <DataRenderer data={marketingPlan} />
-            </div>
-          </section>
+          </>
         ) : (
           /* STATE 2: NO ACCESS (Show both Buy and Unlock options) */
           <section className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto print:hidden">
