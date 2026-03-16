@@ -167,3 +167,26 @@ export async function upvoteIdea(formData: FormData) {
   revalidatePath("/");
   revalidatePath(`/idea/${id}`);
 }
+
+export async function deleteIdea(formData: FormData) {
+  const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) return;
+
+  await db.delete(ideas).where(eq(ideas.id, id));
+
+  revalidatePath("/");
+  revalidatePath("/forge-command");
+}
+
+export async function updateOwnerEmail(formData: FormData) {
+  const id = parseInt(formData.get("id") as string);
+  const email = formData.get("email") as string;
+  if (isNaN(id)) return;
+
+  await db.update(ideas)
+    .set({ ownerEmail: email.toLowerCase().trim() || null })
+    .where(eq(ideas.id, id));
+
+  revalidatePath("/forge-command");
+  revalidatePath(`/idea/${id}`);
+}
