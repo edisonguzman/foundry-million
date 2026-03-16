@@ -164,10 +164,10 @@ export default async function BlueprintPage({
           </div>
         )}
 
-        {/* LOGIC GATE */}
+{/* LOGIC GATE */}
         {showFullPlan ? (
           <>
-            {/* --- NEW: POST-PURCHASE UPSELL BANNER --- */}
+            {/* POST-PURCHASE UPSELL BANNER (Only shows if they have access AND just bought) */}
             {isSuccess && (
               <div className="print:hidden mb-12 p-8 rounded-2xl bg-gradient-to-r from-green-900/40 to-blue-900/40 border border-green-500/30 text-center animate-in fade-in zoom-in duration-500 shadow-2xl">
                 <div className="w-16 h-16 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-4 border border-green-500/50">
@@ -177,14 +177,14 @@ export default async function BlueprintPage({
                 </div>
                 <h2 className="text-2xl font-black uppercase tracking-widest text-white mb-3">Blueprint Unlocked</h2>
                 <p className="text-gray-300 mb-6 max-w-xl mx-auto text-sm leading-relaxed">
-                  Your $1M strategic plan is ready below. But a plan is only as good as its execution. Join our private community to learn the real-world mechanics of running this business.
+                  Your $1M strategic plan is ready below. But a plan is only as good as its execution. Join our private audio community to learn the real-world mechanics of running this business.
                 </p>
                 <a 
                   href="https://esp.espmeet.com/invitation?code=E94AAD" 
                   target="_blank" 
                   className="inline-block px-8 py-4 bg-white text-black font-black uppercase tracking-widest rounded-xl hover:bg-green-400 hover:text-black transition-all shadow-[0_0_20px_rgba(74,222,128,0.2)]"
                 >
-                  Access The Masterclass and Private Community
+                  Access The Masterclass
                 </a>
               </div>
             )}
@@ -207,7 +207,7 @@ export default async function BlueprintPage({
               </div>
             </section>
 
-            {/* --- NEW: PERSISTENT EXECUTION BLOCK --- */}
+            {/* PERSISTENT EXECUTION BLOCK */}
             <div className="print:hidden mt-12 p-8 rounded-2xl border border-blue-500/20 bg-gray-900/40 text-center">
               <h3 className="text-xl font-bold uppercase tracking-widest text-white mb-3">Next Step: Master the Mechanics</h3>
               <p className="text-gray-400 text-sm max-w-2xl mx-auto mb-6 leading-relaxed">
@@ -218,61 +218,87 @@ export default async function BlueprintPage({
                 target="_blank" 
                 className="inline-block px-8 py-3 bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white font-bold uppercase tracking-widest rounded-xl transition-all"
               >
-                Access the Masterclass and Community
+                Access The Masterclass and Private Community
               </a>
             </div>
           </>
         ) : (
-          /* STATE 2: NO ACCESS (Show both Buy and Unlock options) */
-          <section className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto print:hidden">
+          /* STATE 2: NO ACCESS OR JUST RETURNED FROM STRIPE */
+          <section className="max-w-5xl mx-auto print:hidden">
             
-            {/* BUY OPTION */}
-            <div className="p-10 rounded-2xl border border-white/10 bg-gray-900/30 text-center flex flex-col justify-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-              <div className="w-14 h-14 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            {isSuccess ? (
+              /* THE FIX: Post-Checkout Instructions */
+              <div className="p-10 rounded-2xl border border-green-500/30 bg-green-900/10 text-center animate-in zoom-in duration-500">
+                <div className="w-16 h-16 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-6">
+                  <span className="text-3xl">🚀</span>
+                </div>
+                <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-widest">Payment Confirmed</h2>
+                <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                  The Macro-Forge is finalizing your blueprint. To claim your Digital Key and view the data, enter the email address you just used at checkout.
+                </p>
+                
+                <form action={verifyAccess} className="flex flex-col gap-3 max-w-md mx-auto">
+                  <input type="hidden" name="id" value={idea.id} />
+                  <input 
+                    name="email" 
+                    type="email" 
+                    placeholder="Enter your checkout email..." 
+                    required 
+                    className="w-full bg-black border border-gray-800 rounded-xl px-4 py-4 text-white focus:border-green-500 outline-none transition-all text-center text-lg" 
+                  />
+                  <button type="submit" className="w-full bg-green-600 text-black hover:bg-green-500 px-8 py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(74,222,128,0.2)]">
+                    Authenticate & Unlock
+                  </button>
+                </form>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Unlock Full Execution Plan
-              </h2>
-              <p className="text-gray-400 text-sm mb-8">
-                Purchase lifetime access to the AI-generated business model and marketing strategy.
-              </p>
-              
-              <form action={createCheckoutSession}>
-                <input type="hidden" name="ideaId" value={idea.id} />
-                <button type="submit" className="w-full py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                  Unlock Blueprint — $10
-                </button>
-              </form>
-            </div>
+            ) : (
+              /* Standard Locked View (Buy + Login) */
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* BUY OPTION */}
+                <div className="p-10 rounded-2xl border border-white/10 bg-gray-900/30 text-center flex flex-col justify-center relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                  <div className="w-14 h-14 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6">
+                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Unlock Full Execution Plan</h2>
+                  <p className="text-gray-400 text-sm mb-8">Purchase lifetime access to the AI-generated business model and marketing strategy.</p>
+                  
+                  <form action={createCheckoutSession}>
+                    <input type="hidden" name="ideaId" value={idea.id} />
+                    <button type="submit" className="w-full py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                      Unlock Blueprint — $10
+                    </button>
+                  </form>
+                </div>
 
-            {/* LOGIN / VERIFY OPTION */}
-            <div className="p-10 rounded-2xl border border-blue-500/20 bg-gray-900/50 text-center flex flex-col justify-center">
-              <div className="w-14 h-14 mx-auto bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
-                <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
+                {/* LOGIN / VERIFY OPTION */}
+                <div className="p-10 rounded-2xl border border-blue-500/20 bg-gray-900/50 text-center flex flex-col justify-center">
+                  <div className="w-14 h-14 mx-auto bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
+                    <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold mb-2">Already Purchased?</h2>
+                  <p className="text-gray-400 text-sm mb-8">Enter the email used at checkout to authenticate your Digital Key.</p>
+                  
+                  <form action={verifyAccess} className="flex flex-col gap-3">
+                    <input type="hidden" name="id" value={idea.id} />
+                    <input 
+                      name="email" 
+                      type="email" 
+                      placeholder="your@email.com" 
+                      required 
+                      className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-blue-500 outline-none transition-all text-center" 
+                    />
+                    <button type="submit" className="w-full bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest transition-all">
+                      Authenticate
+                    </button>
+                  </form>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold mb-2">Already Purchased?</h2>
-              <p className="text-gray-400 text-sm mb-8">Enter the email used at checkout to authenticate your Digital Key.</p>
-              
-              <form action={verifyAccess} className="flex flex-col gap-3">
-                <input type="hidden" name="id" value={idea.id} />
-                <input 
-                  name="email" 
-                  type="email" 
-                  placeholder="your@email.com" 
-                  required 
-                  className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-blue-500 outline-none transition-all text-center" 
-                />
-                <button type="submit" className="w-full bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest transition-all">
-                  Authenticate
-                </button>
-              </form>
-            </div>
+            )}
           </section>
         )}
       </div>
