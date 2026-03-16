@@ -1,32 +1,41 @@
 import { db } from "@/db";
 import { ideas } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import Link from "next/link";
 import { submitProblem, upvoteIdea } from "./actions";
 
-// We now accept 'searchParams' to handle sorting
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string }>;
+  searchParams: Promise<{ sort?: string; page?: string }>;
 }) {
-  const { sort } = await searchParams;
+  const resolvedParams = await searchParams;
+  const sort = resolvedParams.sort || "newest";
   const isTrending = sort === "trending";
+  
+  // Pagination Math
+  const page = parseInt(resolvedParams.page || "1", 10);
+  const pageSize = 15; // Number of tiles per page
+  const offset = (page - 1) * pageSize;
 
-  // Toggle sorting logic based on the URL parameter
+  // 1. Fetch total count to determine total pages
+  const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(ideas);
+  const totalPages = Math.ceil(Number(count) / pageSize) || 1;
+
+  // 2. Fetch the specific chunk of ideas
   const recentIdeas = await db
     .select()
     .from(ideas)
     .orderBy(isTrending ? desc(ideas.upvotes) : desc(ideas.createdAt))
-    .limit(10);
+    .limit(pageSize)
+    .offset(offset);
 
   return (
     <main className="min-h-screen bg-black text-white px-6 py-20 selection:bg-blue-500/30">
       <div className="max-w-4xl mx-auto">
         
-{/* Hero Section */}
+        {/* Hero Section */}
         <header className="mb-20 text-center">
-          {/* --- FIX: Adjusted text-7xl down to text-5xl for mobile, scaling up through sm and md breakpoints --- */}
           <h1 className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter mb-4 bg-gradient-to-b from-white to-gray-600 bg-clip-text text-transparent">
             FOUNDRY<br/>MILLION
           </h1>
@@ -60,7 +69,7 @@ export default async function Home({
           </h2>
           <div className="flex bg-gray-900/50 p-1 rounded-lg border border-gray-800">
             <Link 
-              href="/" 
+              href="/?sort=newest" 
               className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${!isTrending ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
             >
               Newest
@@ -79,7 +88,7 @@ export default async function Home({
           {recentIdeas.map((idea) => (
             <div key={idea.id} className="relative p-6 rounded-2xl border border-white/5 bg-gray-900/20 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 flex gap-6">
               
-              {/* --- UPDATED: Upvote Column (Matches Blueprint Page) --- */}
+              {/* Upvote Column */}
               <form action={upvoteIdea} className="flex flex-col items-center justify-start pt-1 min-w-[3.5rem]">
                 <input type="hidden" name="id" value={idea.id} />
                 <button 
@@ -108,7 +117,45 @@ export default async function Home({
               </Link>
             </div>
           ))}
+
+          {recentIdeas.length === 0 && (
+            <div className="py-12 text-center text-gray-500 font-mono text-sm uppercase tracking-widest">
+              No concepts forged yet. Be the first.
+            </div>
+          )}
         </div>
+
+        {/* --- NEW: PAGINATION CONTROLS --- */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex items-center justify-between border-t border-gray-900 pt-8">
+            {page > 1 ? (
+              <Link 
+                href={`/?sort=${sort}&page=${page - 1}`}
+                className="px-6 py-2 bg-gray-900/50 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 rounded-xl font-mono text-xs uppercase tracking-widest transition-all"
+              >
+                ← Previous
+              </Link>
+            ) : (
+              <div className="w-24"></div> /* Empty div to keep centering */
+            )}
+
+            <div className="text-gray-600 font-mono text-xs uppercase tracking-widest">
+              Page {page} of {totalPages}
+            </div>
+
+            {page < totalPages ? (
+              <Link 
+                href={`/?sort=${sort}&page=${page + 1}`}
+                className="px-6 py-2 bg-gray-900/50 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 rounded-xl font-mono text-xs uppercase tracking-widest transition-all"
+              >
+                Next →
+              </Link>
+            ) : (
+              <div className="w-24"></div>
+            )}
+          </div>
+        )}
+
       </div>
     </main>
   );
