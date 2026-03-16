@@ -124,7 +124,7 @@ export default async function BlueprintPage({
               </form>
             </div>
           </div>
-          
+
           {/* --- END FIX --- */}
           
           <p className="text-2xl text-blue-400 font-light tracking-tight mb-8 print:text-black">{idea.tagline}</p>
@@ -211,14 +211,14 @@ export default async function BlueprintPage({
             <div className="print:hidden mt-12 p-8 rounded-2xl border border-blue-500/20 bg-gray-900/40 text-center">
               <h3 className="text-xl font-bold uppercase tracking-widest text-white mb-3">Next Step: Master the Mechanics</h3>
               <p className="text-gray-400 text-sm max-w-2xl mx-auto mb-6 leading-relaxed">
-                You have the strategy. Now get the skills. Join our private audio community to learn the real-world mechanics of running a business—from operations to scaling.
+                You have the strategy. Now get the skills. Join our private community to learn the real-world mechanics of running a business—from operations to scaling.
               </p>
               <a 
                 href="https://esp.espmeet.com/invitation?code=E94AAD" 
                 target="_blank" 
                 className="inline-block px-8 py-3 bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white font-bold uppercase tracking-widest rounded-xl transition-all"
               >
-                Access the Masterclass
+                Access the Masterclass and Community
               </a>
             </div>
           </>
