@@ -24,12 +24,13 @@ export default async function Home({
     <main className="min-h-screen bg-black text-white px-6 py-20 selection:bg-blue-500/30">
       <div className="max-w-4xl mx-auto">
         
-        {/* Hero Section */}
+{/* Hero Section */}
         <header className="mb-20 text-center">
-          <h1 className="text-7xl md:text-9xl font-black tracking-tighter mb-4 bg-gradient-to-b from-white to-gray-600 bg-clip-text text-transparent">
+          {/* --- FIX: Adjusted text-7xl down to text-5xl for mobile, scaling up through sm and md breakpoints --- */}
+          <h1 className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter mb-4 bg-gradient-to-b from-white to-gray-600 bg-clip-text text-transparent">
             FOUNDRY<br/>MILLION
           </h1>
-          <p className="text-xl text-blue-400 font-light tracking-[0.2em] uppercase">
+          <p className="text-xl text-blue-400 font-light tracking-[0.2em] uppercase mt-6">
             AI may eliminate jobs — but it could also create one million new companies. Describe a problem you see in the world. AI will generate a business idea to solve it. Help us invent one million businesses for the future.
           </p>
         </header>
