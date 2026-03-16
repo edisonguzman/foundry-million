@@ -61,6 +61,7 @@ export async function submitProblem(formData: FormData) {
   }).returning(); 
 
   revalidatePath("/");
+  revalidatePath("/forge-command");
   redirect(`/idea/${newIdea.id}`);
 }
 

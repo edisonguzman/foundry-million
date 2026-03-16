@@ -4,8 +4,12 @@ import { desc } from "drizzle-orm";
 import { deleteIdea, updateOwnerEmail } from "@/app/actions";
 import Link from "next/link";
 
+// ADD THIS LINE: Forces Next.js to always fetch fresh live data for the dashboard
+export const dynamic = "force-dynamic";
+
 export default async function ForgeCommand() {
   const allIdeas = await db.select().from(ideas).orderBy(desc(ideas.createdAt));
+  
 
   return (
     <main className="min-h-screen bg-black text-white px-6 py-20">
