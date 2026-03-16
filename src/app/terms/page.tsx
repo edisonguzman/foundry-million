@@ -42,8 +42,19 @@ export default function TermsPage() {
           </p>
         </section>
 
+        {/* --- NEW CLAUSE --- */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white">5. Governing Law</h2>
+          <h2 className="text-xl font-bold text-white">5. Content License & Promotional Use</h2>
+          <p className="text-sm leading-relaxed">
+            By submitting prompts and generating content on the Site (including but not limited to business names, taglines, concepts, and strategic blueprints), you grant HowToAttractCustomers.com, LLC a perpetual, worldwide, royalty-free, irrevocable, non-exclusive license to use, reproduce, display, publish, and distribute that content for any purpose. 
+          </p>
+          <p className="text-sm leading-relaxed">
+            This includes, but is not limited to, utilizing the generated data for advertising, marketing campaigns, social media broadcasting, and Site promotions, without any prior notice, attribution, or financial compensation to you.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-white">6. Governing Law</h2>
           <p className="text-sm leading-relaxed">
             These Terms shall be governed by the laws of the State of New York, without regard to its conflict of law provisions. Any legal action shall be brought exclusively in the state or federal courts located in New York.
           </p>
