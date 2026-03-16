@@ -31,8 +31,18 @@ export async function POST(req: Request) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
+  // Handle successful checkouts
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any;
+    
+    // --- THE FIX: STRICT PAYMENT VERIFICATION ---
+    // A session can be "completed" but "unpaid" if using asynchronous payment methods.
+    // We only grant access and fire the AI if the funds have actually cleared.
+    if (session.payment_status !== 'paid') {
+      console.log(`Session ${session.id} completed, but payment status is '${session.payment_status}'. Blocking access.`);
+      return NextResponse.json({ received: true, status: "payment_pending_or_failed" });
+    }
+
     const ideaId = session.metadata?.ideaId;
     const customerEmail = session.customer_details?.email?.toLowerCase().trim();
 
