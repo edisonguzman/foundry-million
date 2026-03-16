@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Link from "next/link"; // ADD THIS IMPORT
+import Link from "next/link";
+import ProtectedEmail from "@/components/ProtectedEmail"; // <-- IMPORT THE COMPONENT
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,10 +28,18 @@ export default function RootLayout({
         {/* Global Footer (Hidden on PDF Prints) */}
         <footer className="print:hidden border-t border-white/10 bg-black py-8 mt-12">
           <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-gray-500 text-xs font-mono uppercase tracking-widest text-center md:text-left">
-              © {new Date().getFullYear()} HowToAttractCustomers.com, LLC. All rights reserved.
+            <div className="flex flex-col items-center md:items-start gap-1">
+              <span className="text-gray-500 text-xs font-mono uppercase tracking-widest text-center md:text-left">
+                © {new Date().getFullYear()} HowToAttractCustomers.com, LLC. All rights reserved.
+              </span>
+              {/* --- NEW: PROTECTED EMAIL --- */}
+              <div className="text-xs font-mono tracking-widest flex gap-2">
+                <span className="text-gray-700 uppercase">Support:</span>
+                <ProtectedEmail />
+              </div>
             </div>
-            <div className="flex gap-6 text-xs font-mono uppercase tracking-widest">
+
+            <div className="flex gap-6 text-xs font-mono uppercase tracking-widest mt-4 md:mt-0">
               <Link href="/terms" className="text-gray-500 hover:text-white transition-colors">
                 Terms & Disclaimers
               </Link>
