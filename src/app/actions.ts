@@ -140,32 +140,30 @@ export async function upvoteIdea(formData: FormData) {
   const id = parseInt(formData.get("id") as string);
   if (isNaN(id)) return;
 
+  const cookieStore = await cookies();
+  const voteCookieName = `voted_${id}`;
+  const hasVoted = cookieStore.get(voteCookieName)?.value;
+
+  // 1. The Gatekeeper: If the cookie exists, silently reject the vote
+  if (hasVoted) {
+    console.log(`Vote blocked: User already voted on Idea #${id}`);
+    return;
+  }
+
+  // 2. Process the vote in the database
   await db.update(ideas)
     .set({ upvotes: sql`${ideas.upvotes} + 1` })
     .where(eq(ideas.id, id));
 
+  // 3. Drop the enforcement cookie (Locks them out for 1 year)
+  cookieStore.set(voteCookieName, "true", {
+    maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
+
+  // 4. Update the UI caches
   revalidatePath("/");
-}
-
-export async function deleteIdea(formData: FormData) {
-  const id = parseInt(formData.get("id") as string);
-  if (isNaN(id)) return;
-
-  await db.delete(ideas).where(eq(ideas.id, id));
-
-  revalidatePath("/");
-  revalidatePath("/forge-command");
-}
-
-export async function updateOwnerEmail(formData: FormData) {
-  const id = parseInt(formData.get("id") as string);
-  const email = formData.get("email") as string;
-  if (isNaN(id)) return;
-
-  await db.update(ideas)
-    .set({ ownerEmail: email.toLowerCase().trim() || null })
-    .where(eq(ideas.id, id));
-
-  revalidatePath("/forge-command");
   revalidatePath(`/idea/${id}`);
 }
