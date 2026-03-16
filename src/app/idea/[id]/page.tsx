@@ -173,14 +173,14 @@ export default async function BlueprintPage({
                 </div>
                 <h2 className="text-2xl font-black uppercase tracking-widest text-white mb-3">Blueprint Unlocked</h2>
                 <p className="text-gray-300 mb-6 max-w-xl mx-auto text-sm leading-relaxed">
-                  Your $1M strategic plan is ready below. But a plan is only as good as its execution. Join our private audio community to learn the real-world mechanics of running this business.
+                  Your $1M strategic plan is ready below. But a plan is only as good as its execution. Join our private community to learn the real-world mechanics of running this business.
                 </p>
                 <a 
                   href="https://esp.espmeet.com/invitation?code=E94AAD" 
                   target="_blank" 
                   className="inline-block px-8 py-4 bg-white text-black font-black uppercase tracking-widest rounded-xl hover:bg-green-400 hover:text-black transition-all shadow-[0_0_20px_rgba(74,222,128,0.2)]"
                 >
-                  Access The Masterclass
+                  Access The Masterclass and Private Community
                 </a>
               </div>
             )}
