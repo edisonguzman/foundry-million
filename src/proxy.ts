@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const basicAuth = req.headers.get('authorization');
   const url = req.nextUrl;
 
@@ -29,7 +29,6 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Tell Next.js to only run this middleware on the command route to save compute
 export const config = {
   matcher: ['/forge-command/:path*'],
 };
