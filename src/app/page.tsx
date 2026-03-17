@@ -44,23 +44,33 @@ export default async function Home({
           </p>
         </header>
 
-        {/* The Forge Input */}
-        <section className="mb-32">
-          <form action={submitProblem} className="relative group">
-            <textarea
-              name="problem"
-              placeholder="What problem exists in the world that you want to solve today?"
-              className="w-full bg-gray-900/50 border-2 border-gray-800 rounded-3xl p-8 text-xl md:text-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none min-h-[200px] placeholder:text-gray-700"
-              required
-            />
-            <button
-              type="submit"
-              className="absolute bottom-6 right-6 bg-white text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-2xl"
-            >
-              Forge Concept
-            </button>
-          </form>
-        </section>
+{/* The Forge Input */}
+        <section className="mb-32">
+          <form action={submitProblem} className="relative group">
+            
+            {/* --- NEW: The Honeypot --- */}
+            <input 
+              type="text" 
+              name="forge_identifier" 
+              className="hidden absolute w-0 h-0 opacity-0 pointer-events-none" 
+              tabIndex={-1} 
+              autoComplete="off" 
+            />
+
+            <textarea
+              name="problem"
+              placeholder="What problem exists in the world that you want to solve today?"
+              className="w-full bg-gray-900/50 border-2 border-gray-800 rounded-3xl p-8 text-xl md:text-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none min-h-[200px] placeholder:text-gray-700"
+              required
+            />
+            <button
+              type="submit"
+              className="absolute bottom-6 right-6 bg-white text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-2xl"
+            >
+              Forge Concept
+            </button>
+          </form>
+        </section>
 
         {/* Trending/Newest Toggle */}
         <div className="flex items-center justify-between mb-8 border-b border-gray-900 pb-4">
