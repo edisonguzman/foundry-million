@@ -15,30 +15,62 @@ const openai = new OpenAI({
 });
 
 export async function submitProblem(formData: FormData) {
-  const problem = formData.get("problem") as string;
-  const honeypot = formData.get("forge_identifier"); // Catch the bots
+  const problem = formData.get("problem") as string;
+  const honeypot = formData.get("forge_identifier"); // Catch the bots
 
-  // 1. The Honeypot Check: If a bot filled this, silently abort.
-  if (honeypot || !problem) return;
+  // 1. The Honeypot Check: If a bot filled this, silently abort.
+  if (honeypot || !problem) return;
 
-  // 2. The Micro-Forge with Built-in Spam Detection
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini", 
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `You are the Architect of Opportunity for Foundry Million. 
-        First, evaluate the user's input. If it is promotional spam, an advertisement, gibberish, or harmful, return ONLY this JSON: {"is_valid": false}.
-        If it is a legitimate problem or concept, transform it into a startup name, a punchy tagline, and a 2-sentence concept. 
-        Return valid JSON with exactly four keys: "is_valid" (true), "name", "tagline", and "concept".`
-      },
-      {
-        role: "user",
-        content: `Analyze this input: ${problem}`
-      }
-    ]
-  });
+  // 2. The Micro-Forge with Built-in Spam Detection
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini", 
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are the Architect of Opportunity for Foundry Million. First, evaluate the user's input. If it is promotional spam, an advertisement, gibberish, or harmful, return ONLY this JSON: {"is_valid": false}. If it is a legitimate problem or concept, transform it into a startup name, a punchy tagline, and a 2-sentence concept. Return valid JSON with exactly four keys: "is_valid" (true), "name", "tagline", and "concept".`
+      },
+      {
+        role: "user",
+        content: `Analyze this input: ${problem}`
+      }
+    ]
+  });
+
+  const aiResponse = completion.choices[0].message.content;
+  if (!aiResponse) throw new Error("Failed to forge idea");
+
+  const aiData = JSON.parse(aiResponse);
+
+  // 3. The Gatekeeper Check: If the AI flagged it as spam, silently abort.
+  if (aiData.is_valid === false) {
+    console.warn("Spam or promotional content rejected by AI Engine.");
+    return; 
+  }
+
+  // 4. Find the highest existing Tile ID
+  const [lastIdea] = await db
+    .select({ tileIndex: ideas.tileIndex })
+    .from(ideas)
+    .orderBy(desc(ideas.tileIndex))
+    .limit(1);
+
+  const nextTileIndex = lastIdea?.tileIndex ? lastIdea.tileIndex + 1 : 1;
+
+  // 5. Save the Free Stage 1 data
+  const [newIdea] = await db.insert(ideas).values({
+    tileIndex: nextTileIndex,
+    problem: problem,
+    businessName: aiData.name || "Unknown Startup",
+    tagline: aiData.tagline || "Forging in progress...",
+    concept: aiData.concept || "Concept generation failed.",
+    status: "pending", 
+  }).returning(); 
+
+  revalidatePath("/", "layout");
+  revalidatePath("/forge-command", "layout");
+  redirect(`/idea/${newIdea.id}`);
+}
 
   const aiResponse = completion.choices[0].message.content;
   if (!aiResponse) throw new Error("Failed to forge idea");
