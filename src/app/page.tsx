@@ -70,7 +70,7 @@ export default async function Home({
               Forge Concept
             </button>
           </form>
-        </section>
+       </section>
 
         {/* Trending/Newest Toggle */}
         <div className="flex items-center justify-between mb-8 border-b border-gray-900 pb-4">
