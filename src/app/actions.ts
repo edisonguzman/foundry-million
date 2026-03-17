@@ -15,69 +15,40 @@ const openai = new OpenAI({
 });
 
 export async function submitProblem(formData: FormData) {
-  const problem = formData.get("problem") as string;
-  const honeypot = formData.get("forge_identifier"); 
+  const problem = formData.get("problem") as string;
+  const honeypot = formData.get("forge_identifier"); 
 
-  // 1. The Honeypot Check
-  if (honeypot || !problem) return;
+  // 1. The Honeypot Check
+  if (honeypot || !problem) return;
 
-  // 2. The Micro-Forge with Built-in Spam Detection
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini", 
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `You are the Architect of Opportunity for Foundry Million. First, evaluate the user's input. If it is promotional spam, an advertisement, gibberish, or harmful, return ONLY this JSON: {"is_valid": false}. If it is a legitimate problem or concept, transform it into a startup name, a punchy tagline, and a 2-sentence concept. Return valid JSON with exactly four keys: "is_valid": true, "name", "tagline", and "concept".`
-      },
-      {
-        role: "user",
-        content: `Analyze this input: ${problem}`
-      }
-    ]
-  });
-
-  const aiResponse = completion.choices[0].message.content;
-  if (!aiResponse) throw new Error("Failed to forge idea");
-
-  const aiData = JSON.parse(aiResponse);
-
-  // 3. The Gatekeeper Check
-  if (aiData.is_valid === false) {
-    console.warn("Spam or promotional content rejected by AI Engine.");
-    return; 
-  }
-
-  // 4. Find the highest existing Tile ID
-  const [lastIdea] = await db
-    .select({ tileIndex: ideas.tileIndex })
-    .from(ideas)
-    .orderBy(desc(ideas.tileIndex))
-    .limit(1);
-
-  const nextTileIndex = lastIdea?.tileIndex ? lastIdea.tileIndex + 1 : 1;
-
-  // 5. Save the Free Stage 1 data
-  const [newIdea] = await db.insert(ideas).values({
-    tileIndex: nextTileIndex,
-    problem: problem,
-    businessName: aiData.name || "Unknown Startup",
-    tagline: aiData.tagline || "Forging in progress...",
-    concept: aiData.concept || "Concept generation failed.",
-    status: "pending", 
-  }).returning(); 
-
-  revalidatePath("/", "layout");
-  revalidatePath("/forge-command", "layout");
-  redirect(`/idea/${newIdea.id}`);
-}
+  // 2. The Micro-Forge with Built-in Spam Detection
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini", 
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are the Architect of Opportunity for Foundry Million. First, evaluate the user's input. If it is promotional spam, an advertisement, gibberish, or harmful, return ONLY this JSON: {"is_valid": false}. If it is a legitimate problem or concept, transform it into a startup name, a punchy tagline, and a 2-sentence concept. Return valid JSON with exactly four keys: "is_valid": true, "name", "tagline", and "concept".`
+      },
+      {
+        role: "user",
+        content: `Analyze this input: ${problem}`
+      }
+    ]
+  });
 
   const aiResponse = completion.choices[0].message.content;
   if (!aiResponse) throw new Error("Failed to forge idea");
 
   const aiData = JSON.parse(aiResponse);
 
-  // 2. Find the highest existing Tile ID
+  // 3. The Gatekeeper Check
+  if (aiData.is_valid === false) {
+    console.warn("Spam or promotional content rejected by AI Engine.");
+    return; 
+  }
+
+  // 4. Find the highest existing Tile ID
   const [lastIdea] = await db
     .select({ tileIndex: ideas.tileIndex })
     .from(ideas)
@@ -86,7 +57,7 @@ export async function submitProblem(formData: FormData) {
 
   const nextTileIndex = lastIdea?.tileIndex ? lastIdea.tileIndex + 1 : 1;
 
-  // 3. Save the Free Stage 1 data
+  // 5. Save the Free Stage 1 data
   const [newIdea] = await db.insert(ideas).values({
     tileIndex: nextTileIndex,
     problem: problem,
@@ -96,8 +67,8 @@ export async function submitProblem(formData: FormData) {
     status: "pending", 
   }).returning(); 
 
-  revalidatePath("/");
-  revalidatePath("/forge-command");
+  revalidatePath("/", "layout");
+  revalidatePath("/forge-command", "layout");
   redirect(`/idea/${newIdea.id}`);
 }
 
@@ -205,13 +176,13 @@ export async function upvoteIdea(formData: FormData) {
 }
 
 export async function deleteIdea(formData: FormData) {
-  const id = parseInt(formData.get("id") as string);
-  if (isNaN(id)) return;
+  const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) return;
 
-  await db.delete(ideas).where(eq(ideas.id, id));
+  await db.delete(ideas).where(eq(ideas.id, id));
 
-  revalidatePath("/", "layout");
-  revalidatePath("/forge-command", "layout");
+  revalidatePath("/", "layout");
+  revalidatePath("/forge-command", "layout");
 }
 
 export async function updateOwnerEmail(formData: FormData) {
@@ -226,6 +197,7 @@ export async function updateOwnerEmail(formData: FormData) {
   revalidatePath("/forge-command");
   revalidatePath(`/idea/${id}`);
 }
+
 export async function loginToVault(formData: FormData) {
   const email = formData.get("email")?.toString().toLowerCase().trim();
   if (!email) return;
