@@ -169,13 +169,15 @@ export async function upvoteIdea(formData: FormData) {
 }
 
 export async function deleteIdea(formData: FormData) {
-  const id = parseInt(formData.get("id") as string);
-  if (isNaN(id)) return;
+  const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) return;
 
-  await db.delete(ideas).where(eq(ideas.id, id));
+  await db.delete(ideas).where(eq(ideas.id, id));
 
-  revalidatePath("/");
-  revalidatePath("/forge-command");
+  // The "layout" parameter forces Next.js to purge all cached variants (like ?sort=trending & pages)
+  // and clears the client-side router cache so the main feed updates instantly.
+  revalidatePath("/", "layout");
+  revalidatePath("/forge-command", "layout");
 }
 
 export async function updateOwnerEmail(formData: FormData) {
